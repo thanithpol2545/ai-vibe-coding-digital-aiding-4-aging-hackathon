@@ -111,19 +111,35 @@ streamlit run src/app.py
 ```
 ├── assets/
 │   ├── fonts/             # Thai font (THSarabunNew.ttf)
+│   ├── recordings/        # Session recordings (auto-generated)
+│   │   └── sessions/      # Patient session JSON data
 │   ├── *.mp4              # Video resources for testing
-│   └── hand_landmarker.task  # MediaPipe model
+│   └── hand_landmarker.task  # MediaPipe model (auto-downloaded)
 ├── docs/
-│   ├── Research/         # Obsidian vault (PRD, Planning, Medical)
-│   ├── SUMMARY.md        # Project summary
+│   ├── Research/          # Obsidian vault (notes, analysis, docs)
+│   ├── SUMMARY.md         # Project summary
 │   └── แข่งขัน E-Health Hackathon 2026 Elderly AI Innovation.pdf
+├── logs/                  # App logs (auto-generated)
 ├── src/
-│   ├── app.py            # Streamlit UI
-│   ├── hand_tracker.py   # MediaPipe hand detection
-│   ├── features.py       # Speed/Accuracy/Quality feature extraction
-│   ├── classifier.py     # Dominance + LNU classification
-│   ├── config.py         # Constants, dataclasses, thresholds
-│   └── run_analysis.py   # Batch video analysis
+│   ├── app.py             # Streamlit UI
+│   ├── hand_tracker.py    # MediaPipe hand detection
+│   ├── features.py        # Speed/Accuracy/Quality feature extraction
+│   ├── classifier.py      # Dominance + LNU classification
+│   ├── config.py          # Constants, dataclasses, thresholds
+│   ├── session.py         # Patient session persistence
+│   ├── report.py          # PDF report generation
+│   ├── logger.py          # Structured logging setup
+│   ├── guidance.py        # In-frame exercise guidance overlay
+│   ├── yolo_detector.py   # YOLO person validation
+│   ├── live_analysis.py   # CLI real-time analysis
+│   └── run_analysis.py    # Batch video analysis
+├── tests/
+│   ├── test_config.py
+│   ├── test_classifier.py
+│   ├── test_features.py
+│   └── test_session.py
+├── Dockerfile
+├── docker-compose.yml
 ├── requirements.txt
 └── README.md
 ```
