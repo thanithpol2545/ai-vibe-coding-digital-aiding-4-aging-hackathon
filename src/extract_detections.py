@@ -36,7 +36,8 @@ for name, max_save in [("60-L-cut.mp4", 20), ("67-R-cut.mp4", 20)]:
             break
         
         if frame_idx % 5 == 0:
-            hands = tracker.process_frame(frame)
+            out = tracker.process_frame(frame)
+            hands = out.get("hands", [])
             if hands:
                 display = frame.copy()
                 for h in hands:

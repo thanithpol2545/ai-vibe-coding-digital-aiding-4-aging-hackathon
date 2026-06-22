@@ -19,32 +19,105 @@ st.set_page_config(page_title="Hand Assessment AI", page_icon="✋", layout="wid
 
 st.markdown("""
 <style>
+/* ── Elderly-friendly UI ── */
+html { font-size: 18px; }
 .stApp { background: #f0f2f6; }
-.stButton>button { width: 100%; }
-.metric-card {
-    background: white; border-radius: 10px; padding: 15px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1); margin: 5px 0;
+
+/* Bigger all text */
+p, li, .stMarkdown, .stText, .stCaption { font-size: 1.1rem !important; }
+h1 { font-size: 2.2rem !important; }
+h2 { font-size: 1.8rem !important; }
+h3 { font-size: 1.5rem !important; }
+
+/* Bigger buttons — min 56px height */
+.stButton>button {
+    width: 100%;
+    min-height: 56px !important;
+    font-size: 1.2rem !important;
+    font-weight: 600 !important;
+    padding: 12px 24px !important;
+    border-radius: 14px !important;
 }
-.risk-high { color: #dc3545; font-weight: bold; }
-.risk-moderate { color: #ffc107; font-weight: bold; }
-.risk-low { color: #28a745; font-weight: bold; }
+div[data-testid="stBaseButton-primary"] button {
+    min-height: 60px !important;
+    font-size: 1.3rem !important;
+}
+
+/* Bigger sidebar inputs */
+.sidebar .stTextInput input, .sidebar .stNumberInput input, .sidebar .stTextArea textarea {
+    font-size: 1.1rem !important;
+    min-height: 48px !important;
+}
+.sidebar .stSelectbox div[data-baseweb="select"] > div {
+    min-height: 48px !important;
+    font-size: 1.1rem !important;
+}
+.sidebar .stSlider label { font-size: 1.1rem !important; }
+.sidebar .stCheckbox label { font-size: 1.1rem !important; }
+
+/* Bigger radio buttons */
+div[data-testid="stRadio"] label {
+    font-size: 1.1rem !important;
+    padding: 8px 0 !important;
+}
+
+/* File uploader bigger */
+div[data-testid="stFileUploader"] section {
+    padding: 24px !important;
+    font-size: 1.1rem !important;
+}
+
+/* Metric cards */
+.metric-card {
+    background: white; border-radius: 16px; padding: 24px;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.12); margin: 10px 0;
+}
+.metric-card label { font-size: 1.1rem !important; }
+.metric-card .stMetric label { font-size: 1rem !important; }
+.metric-card .stMetric div[data-testid="metric-value"] {
+    font-size: 1.8rem !important;
+    font-weight: 700 !important;
+}
+
+/* Risk badges */
+.risk-high { color: #dc3545; font-weight: bold; font-size: 1.2rem; }
+.risk-moderate { color: #cc7700; font-weight: bold; font-size: 1.2rem; }
+.risk-low { color: #1a8a3a; font-weight: bold; font-size: 1.2rem; }
+
+/* Success/warning/error fonts */
+.stAlert { font-size: 1.1rem !important; padding: 16px !important; }
+
+/* Expander */
+.streamlit-expanderHeader { font-size: 1.1rem !important; font-weight: 600 !important; }
+
+/* Sidebar header */
+.sidebar .stSidebar h2, .sidebar .stSidebar h3 { font-size: 1.3rem !important; }
+
+/* Bigger info boxes */
+.stInfo, .stSuccess, .stWarning, .stError { font-size: 1.1rem !important; padding: 16px !important; }
+
+/* Column gap wider */
+div[data-testid="column"] { gap: 1.5rem !important; }
+
+/* Bigger expander content */
+.streamlit-expanderContent p { font-size: 1.1rem !important; line-height: 1.7 !important; }
 </style>
 """, unsafe_allow_html=True)
 
-st.title("🖐️ ระบบวิเคราะห์มือสำหรับผู้สูงอายุ")
-st.markdown("วิเคราะห์การเคลื่อนไหวมือ เพื่อตรวจสอบความถนัดและภาวะ Learned Non-Use")
+st.markdown('<h1 style="font-size:2.2rem;text-align:center;">🖐️ ระบบวิเคราะห์มือสำหรับผู้สูงอายุ</h1>', unsafe_allow_html=True)
+st.markdown('<p style="font-size:1.2rem;text-align:center;color:#444;">วิเคราะห์การเคลื่อนไหวมือ เพื่อตรวจสอบความถนัดและภาวะ Learned Non-Use</p>', unsafe_allow_html=True)
 
 # ─── Sidebar ───
-st.sidebar.header("👤 ข้อมูลผู้ป่วย")
-patient_name = st.sidebar.text_input("ชื่อ-นามสกุล", value=st.session_state.get("patient_name", ""), key="patient_name_input")
-patient_age = st.sidebar.number_input("อายุ", min_value=0, max_value=120, value=st.session_state.get("patient_age", 65), key="patient_age_input")
-patient_notes = st.sidebar.text_area("บันทึกเพิ่มเติม", value=st.session_state.get("patient_notes", ""), key="patient_notes_input", max_chars=200)
+st.sidebar.markdown("## 👤 ข้อมูลผู้ป่วย")
+patient_name = st.sidebar.text_input("ชื่อ-นามสกุล", value=st.session_state.get("patient_name", ""), key="patient_name_input", placeholder="เช่น สมชาย ใจดี")
+patient_age = st.sidebar.number_input("อายุ (ปี)", min_value=0, max_value=120, value=st.session_state.get("patient_age", 65), key="patient_age_input")
+patient_notes = st.sidebar.text_area("บันทึกเพิ่มเติม", value=st.session_state.get("patient_notes", ""), key="patient_notes_input", max_chars=200, placeholder="อาการหรือข้อสังเกต")
 st.sidebar.markdown("---")
 
-st.sidebar.header("⚙️ ตั้งค่า")
-input_mode = st.sidebar.radio("โหมดอินพุต", ["Upload Video", "Webcam (Live)"], format_func=lambda x: "📂 อัปโหลดวิดีโอ" if x == "Upload Video" else "📷 กล้องเว็บแคม")
+st.sidebar.markdown("## ⚙️ ตั้งค่า")
+input_mode = st.sidebar.radio("เลือกวิธีใช้งาน", ["Upload Video", "Webcam (Live)"], format_func=lambda x: "📂 อัปโหลดวิดีโอ" if x == "Upload Video" else "📷 ใช้กล้องเว็บแคม")
 test_type = st.sidebar.selectbox("แบบทดสอบ", ["Finger Tapping", "Reach-to-Target", "Combined"], format_func=lambda x: {"Finger Tapping": "👆 แตะนิ้ว", "Reach-to-Target": "🏃 เอื้อมแขน", "Combined": "🔄 ผสมทั้งสอง"}[x])
-duration = st.sidebar.slider("ระยะเวลาบันทึก (วินาที)", 5, 30, 10)
+duration = st.sidebar.slider("⏱ ระยะเวลาบันทึก (วินาที)", 5, 30, 10)
 voice_enabled = st.sidebar.checkbox("🔊 เปิดคำแนะนำด้วยเสียง", value=True)
 
 # ─── Initialize ───
@@ -102,6 +175,41 @@ def _play_common(phase: str):
     return vg.get_common_audio(phase)
 
 
+def _draw_pose(frame, pose, arm_angles):
+    if not pose:
+        return
+    POSE_CONNECTIONS = [
+        (config.LEFT_SHOULDER, config.LEFT_ELBOW),
+        (config.LEFT_ELBOW, config.LEFT_WRIST),
+        (config.RIGHT_SHOULDER, config.RIGHT_ELBOW),
+        (config.RIGHT_ELBOW, config.RIGHT_WRIST),
+    ]
+    colors = {"Left": (255, 100, 100), "Right": (100, 100, 255)}
+    for side_name, (sh, el, wr) in {
+        "Left": (config.LEFT_SHOULDER, config.LEFT_ELBOW, config.LEFT_WRIST),
+        "Right": (config.RIGHT_SHOULDER, config.RIGHT_ELBOW, config.RIGHT_WRIST),
+    }.items():
+        if sh not in pose or el not in pose or wr not in pose:
+            continue
+        clr = colors.get(side_name, (200, 200, 200))
+        sh_pt = (int(pose[sh]["x"]), int(pose[sh]["y"]))
+        el_pt = (int(pose[el]["x"]), int(pose[el]["y"]))
+        wr_pt = (int(pose[wr]["x"]), int(pose[wr]["y"]))
+        for pt in [sh_pt, el_pt, wr_pt]:
+            cv2.circle(frame, pt, 6, clr, -1)
+            cv2.circle(frame, pt, 8, (255, 255, 255), 2)
+        cv2.line(frame, sh_pt, el_pt, clr, 3)
+        cv2.line(frame, el_pt, wr_pt, clr, 3)
+    if arm_angles:
+        for side in ["left", "right"]:
+            key = f"{side}_elbow_angle"
+            if key in arm_angles:
+                lbl = f"{side.capitalize()} Elbow: {arm_angles[key]:.0f}°"
+                clr = colors.get(side.capitalize(), (200, 200, 200))
+                cv2.putText(frame, lbl, (10, 120 + (30 if side == "right" else 0)),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, clr, 2)
+
+
 def process_video_progressive(video_path: str, progress_bar, frame_placeholder, status_text, test_type="Finger Tapping"):
     cap = cv2.VideoCapture(video_path)
     fps = cap.get(cv2.CAP_PROP_FPS)
@@ -123,13 +231,19 @@ def process_video_progressive(video_path: str, progress_bar, frame_placeholder, 
         display = frame_rgb.copy()
 
         if frame_idx % step == 0:
-            hands = tracker.process_frame(frame)
-            if hands:
-                frame_data.append({
+            out = tracker.process_frame(frame)
+            hands = out.get("hands", [])
+            pose = out.get("pose")
+            arm_angles = tracker._compute_arm_angles(pose) if pose else {}
+            if hands or pose:
+                entry = {
                     "frame": frame_idx,
                     "time_sec": frame_idx / fps,
                     "hands": hands,
-                })
+                }
+                if arm_angles:
+                    entry["arm_angles"] = arm_angles
+                frame_data.append(entry)
 
                 for h in hands:
                     for lm in h["landmarks"]:
@@ -187,15 +301,16 @@ def process_video_progressive(video_path: str, progress_bar, frame_placeholder, 
 
 
 def display_metrics(result: config.ClassificationResult):
-    col1, col2, col3 = st.columns(3)
+    col1, col2 = st.columns(2)
     with col1:
         st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-        st.metric("🖐️ มือที่ถนัด", result.dominant_hand, f"มั่นใจ {result.confidence*100:.0f}%")
+        st.markdown(f'<div style="font-size:1.5rem;font-weight:700;">🖐️ มือที่ถนัด: {result.dominant_hand}</div>', unsafe_allow_html=True)
+        st.markdown(f'<div style="font-size:1.1rem;color:#555;">มั่นใจ {result.confidence*100:.0f}%</div>', unsafe_allow_html=True)
         st.markdown('</div>', unsafe_allow_html=True)
     with col2:
         risk_class = "risk-high" if result.is_learned_non_use else ("risk-moderate" if result.learned_non_use_risk > 0.25 else "risk-low")
         st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-        st.markdown(f'<span class="{risk_class}">⚠️ ความเสี่ยง Learned Non-Use: {result.learned_non_use_risk*100:.1f}%</span>', unsafe_allow_html=True)
+        st.markdown(f'<span class="{risk_class}" style="font-size:1.3rem;">⚠️ ความเสี่ยง Learned Non-Use: {result.learned_non_use_risk*100:.1f}%</span>', unsafe_allow_html=True)
         if result.is_learned_non_use:
             st.error("🔴 เสี่ยงสูง — แนะนำให้พบแพทย์")
         elif result.learned_non_use_risk > 0.25:
@@ -203,42 +318,46 @@ def display_metrics(result: config.ClassificationResult):
         else:
             st.success("✅ ปกติ — รูปแบบการเคลื่อนไหวสมมาตรดี")
         st.markdown('</div>', unsafe_allow_html=True)
-    with col3:
-        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
-        st.markdown("**📋 รายละเอียด**")
-        st.write(result.details)
-        st.markdown('</div>', unsafe_allow_html=True)
 
-    st.subheader("📊 เปรียบเทียบคุณลักษณะ")
+    st.markdown("## 📊 เปรียบเทียบคุณลักษณะ")
     cols = st.columns(2)
     with cols[0]:
-        st.markdown("**👈 มือซ้าย**")
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.markdown("### 👈 มือซ้าย")
         lf = result.left_features
-        st.json({
-            "ความเร็วในการแตะ": f"{lf.tapping_speed:.2f} ครั้ง/วินาที",
-            "ความสม่ำเสมอ": f"{lf.tap_regularity:.2f}",
-            "ความเร็วสูงสุด": f"{lf.avg_peak_velocity:.4f}",
-            "ประสิทธิภาพเส้นทาง": f"{lf.path_efficiency:.2f}",
-            "ความลื่นไหล": f"{lf.movement_smoothness:.2f}",
-            "ROM": f"{lf.range_of_motion:.3f}",
-            "ดัชนีอาการสั่น": f"{lf.tremor_index:.3f}",
-        })
+        features = [
+            ("ความเร็วในการแตะ", f"{lf.tapping_speed:.2f} ครั้ง/วินาที"),
+            ("ความสม่ำเสมอ", f"{lf.tap_regularity:.2f}"),
+            ("ความเร็วสูงสุด", f"{lf.avg_peak_velocity:.4f}"),
+            ("ประสิทธิภาพเส้นทาง", f"{lf.path_efficiency:.2f}"),
+            ("ความลื่นไหล", f"{lf.movement_smoothness:.2f}"),
+            ("ROM", f"{lf.range_of_motion:.3f}"),
+            ("ดัชนีอาการสั่น", f"{lf.tremor_index:.3f}"),
+        ]
+        for label, val in features:
+            st.markdown(f'<div style="font-size:1rem;padding:4px 0;"><strong>{label}:</strong> {val}</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
     with cols[1]:
-        st.markdown("**👉 มือขวา**")
+        st.markdown('<div class="metric-card">', unsafe_allow_html=True)
+        st.markdown("### 👉 มือขวา")
         rf = result.right_features
-        st.json({
-            "ความเร็วในการแตะ": f"{rf.tapping_speed:.2f} ครั้ง/วินาที",
-            "ความสม่ำเสมอ": f"{rf.tap_regularity:.2f}",
-            "ความเร็วสูงสุด": f"{rf.avg_peak_velocity:.4f}",
-            "ประสิทธิภาพเส้นทาง": f"{rf.path_efficiency:.2f}",
-            "ความลื่นไหล": f"{rf.movement_smoothness:.2f}",
-            "ROM": f"{rf.range_of_motion:.3f}",
-            "ดัชนีอาการสั่น": f"{rf.tremor_index:.3f}",
-        })
+        features = [
+            ("ความเร็วในการแตะ", f"{rf.tapping_speed:.2f} ครั้ง/วินาที"),
+            ("ความสม่ำเสมอ", f"{rf.tap_regularity:.2f}"),
+            ("ความเร็วสูงสุด", f"{rf.avg_peak_velocity:.4f}"),
+            ("ประสิทธิภาพเส้นทาง", f"{rf.path_efficiency:.2f}"),
+            ("ความลื่นไหล", f"{rf.movement_smoothness:.2f}"),
+            ("ROM", f"{rf.range_of_motion:.3f}"),
+            ("ดัชนีอาการสั่น", f"{rf.tremor_index:.3f}"),
+        ]
+        for label, val in features:
+            st.markdown(f'<div style="font-size:1rem;padding:4px 0;"><strong>{label}:</strong> {val}</div>', unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
-    st.subheader("🔄 วิเคราะห์ความสมมาตร")
-    st.metric("ดัชนีความสมมาตร", f"{result.left_features.symmetry_index:.3f}",
-              help="0=สมมาตรสมบูรณ์, ยิ่งสูง=ยิ่งไม่สมมาตร")
+    st.markdown("## 🔄 วิเคราะห์ความสมมาตร")
+    sym_val = result.left_features.symmetry_index
+    sym_desc = "สมมาตรดี" if sym_val < 0.15 else "ไม่สมมาตรปานกลาง" if sym_val < 0.35 else "ไม่สมมาตรมาก"
+    st.markdown(f'<div class="metric-card" style="text-align:center;"><span style="font-size:1.3rem;">📊 ดัชนีความสมมาตร: <strong>{sym_val:.3f}</strong> ({sym_desc})</span><br><span style="color:#888;">0=สมมาตรสมบูรณ์, ยิ่งสูง=ยิ่งไม่สมมาตร</span></div>', unsafe_allow_html=True)
 
 
 def _show_save_buttons(result):
@@ -253,9 +372,9 @@ def _show_save_buttons(result):
                 result=result,
             )
             st.session_state.saved_session_id = sid
-            st.success(f"✅ บันทึกแล้ว (ID: {sid})")
+            st.success(f"✅ บันทึกแล้ว (รหัส: {sid})")
     with col_pdf:
-        if st.button("📄 ดาวน์โหลด PDF Report", type="secondary", use_container_width=True):
+        if st.button("📄 ดาวน์โหลด PDF รายงาน", type="secondary", use_container_width=True):
             try:
                 report = AssessmentReport()
                 pdf_bytes = report.generate(
@@ -265,7 +384,7 @@ def _show_save_buttons(result):
                     patient_notes=st.session_state.get("patient_notes_input", ""),
                 )
                 st.download_button(
-                    label="📥 คลิกเพื่อดาวน์โหลด PDF",
+                    label="📥 คลิกดาวน์โหลด PDF",
                     data=pdf_bytes,
                     file_name=f"hand_assessment_{result.dominant_hand}_{int(result.learned_non_use_risk*100)}pct.pdf",
                     mime="application/pdf",
@@ -281,15 +400,15 @@ if input_mode == "Upload Video":
     uploaded_file = st.file_uploader(
         "📂 อัปโหลดวิดีโอการเคลื่อนไหวมือ",
         type=["mp4", "avi", "mov", "webm"],
-        help="บันทึกวิดีโอการแตะนิ้วหรือเอื้อมแขน แล้วอัปโหลดที่นี่"
+        help="เลือกไฟล์วิดีโอที่บันทึกการแตะนิ้วหรือเอื้อมแขน"
     )
     if uploaded_file:
         with tempfile.NamedTemporaryFile(delete=False, suffix=".mp4") as tmp:
             tmp.write(uploaded_file.read())
             tmp_path = tmp.name
 
-        st.markdown("### 🔄 กำลังประมวลผล")
-        st.caption("แสดงวิดีโอพร้อมวิเคราะห์แบบ Real-time")
+        st.markdown("## 🔄 กำลังประมวลผล")
+        st.markdown("แสดงวิดีโอพร้อมวิเคราะห์แบบเรียลไทม์")
         progress_bar = st.progress(0)
         status_text = st.empty()
         frame_placeholder = st.empty()
@@ -308,13 +427,12 @@ if input_mode == "Upload Video":
             _show_save_buttons(result)
         else:
             status_text.error("⚠️ ตรวจไม่พบมือ — ลองใช้วิดีโออื่น")
-            st.warning("ตรวจสอบให้แน่ใจว่ามือทั้งสองข้างอยู่ในเฟรมและมีการเคลื่อนไหว")
+            st.warning("ตรวจสอบให้แน่ใจว่ามือทั้งสองข้างอยู่ในเฟรม")
 
-        if st.button("🔄 วิเคราะห์วิดีโออื่น"):
-            st.rerun()
+        st.button("🔄 วิเคราะห์วิดีโออื่น", type="secondary", use_container_width=True, on_click=lambda: st.rerun())
 
 else:
-    st.info("📷 **โหมดกล้องเว็บแคม** — วางมือในกรอบ ระบบจะเริ่มอัตโนมัติ")
+    st.markdown('<div style="background:#e8f4fd;padding:20px;border-radius:16px;font-size:1.2rem;text-align:center;">📷 <strong>โหมดกล้องเว็บแคม</strong> — วางมือในกรอบ ระบบจะเริ่มบันทึกอัตโนมัติ</div>', unsafe_allow_html=True)
 
     cap = cv2.VideoCapture(0)
     cap.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
@@ -340,7 +458,11 @@ else:
             setup_audio = _play_cue(test_type, "setup")
             if setup_audio:
                 st.markdown(setup_audio, unsafe_allow_html=True)
-            hands = tracker.process_frame(frame)
+            out = tracker.process_frame(frame)
+            hands = out.get("hands", [])
+            pose = out.get("pose")
+            arm_angles = tracker._compute_arm_angles(pose) if pose else {}
+            _draw_pose(display, pose, arm_angles)
             in_zone = False
 
             if hands:
@@ -363,7 +485,7 @@ else:
                 hands_ready = 0
 
             FRAME_WINDOW.image(display, channels="BGR")
-            status_text.info("🔄 รอให้มืออยู่ในกรอบสีเขียว...")
+            status_text.markdown('<div style="background:#d4edda;padding:12px 20px;border-radius:14px;font-size:1.2rem;text-align:center;">🔄 กรุณาวางมือในกรอบสีเขียว...</div>', unsafe_allow_html=True)
             time.sleep(0.03)
 
         elif state == "countdown":
@@ -405,14 +527,21 @@ else:
                 hands_detected = False
 
                 if webcam_step % 2 == 0:
-                    hands = tracker.process_frame(frame)
+                    out = tracker.process_frame(frame)
+                    hands = out.get("hands", [])
+                    pose = out.get("pose")
+                    arm_angles = tracker._compute_arm_angles(pose) if pose else {}
+                    _draw_pose(frame, pose, arm_angles)
                     if hands:
                         hands_detected = True
-                        all_frames["frames"].append({
+                        entry = {
                             "frame": st.session_state.frame_count,
                             "time_sec": time.time() - start_time,
                             "hands": hands,
-                        })
+                        }
+                        if arm_angles:
+                            entry["arm_angles"] = arm_angles
+                        all_frames["frames"].append(entry)
                         for hh in hands:
                             for lm in hh["landmarks"]:
                                 cx, cy = int(lm[0]), int(lm[1])
@@ -436,7 +565,7 @@ else:
                 _g.draw_recording_overlay(frame, hands_detected, test_type, elapsed, duration)
                 st.session_state.frame_count += 1
                 FRAME_WINDOW.image(frame, channels="BGR")
-                status_text.info("🔴 กำลังบันทึก...")
+                status_text.markdown('<div style="background:#f8d7da;padding:10px 18px;border-radius:14px;font-size:1.2rem;text-align:center;">🔴 กำลังบันทึก... ({:.0f}%)</div>'.format(100 * elapsed / duration), unsafe_allow_html=True)
 
             all_frames["total_frames"] = st.session_state.frame_count
             if len(all_frames["frames"]) > 5:
@@ -463,9 +592,9 @@ else:
             continue
 
         elif state == "done":
-            _g._txt(frame, "✅ เสร็จสิ้น!", frame.shape[1] // 2 - 80, frame.shape[0] // 2, (0, 255, 0), 1, 3)
+            _g._txt(frame, "✅ เสร็จสิ้น!", frame.shape[1] // 2 - 120, frame.shape[0] // 2, (0, 255, 0), 1.2, 4)
             FRAME_WINDOW.image(frame, channels="BGR")
-            status_text.success("✅ บันทึกเสร็จสิ้น!")
+            status_text.markdown('<div style="background:#d4edda;padding:14px 22px;border-radius:14px;font-size:1.3rem;text-align:center;font-weight:700;">✅ บันทึกเสร็จสิ้น!</div>', unsafe_allow_html=True)
             break
 
     cap.release()
@@ -473,10 +602,10 @@ else:
     if st.session_state.get("cam_state") == "done" and st.session_state.result:
         display_metrics(st.session_state.result)
         _show_save_buttons(st.session_state.result)
-        if st.button("🔄 ทดสอบใหม่"):
-            for k in ["result", "cam_state", "saved_session_id"]:
-                st.session_state[k] = None if k in ["result", "saved_session_id"] else "preview"
-            st.rerun()
+        st.button("🔄 ทดสอบใหม่", type="secondary", use_container_width=True, on_click=lambda: [
+            st.session_state.update({k: None if k in ["result", "saved_session_id"] else "preview"})
+            for k in ["result", "cam_state", "saved_session_id"]
+        ] or st.rerun())
 
 st.sidebar.markdown("---")
 with st.sidebar.expander(f"📖 วิธีทำ {test_type}", expanded=True):
@@ -494,13 +623,13 @@ with st.sidebar.expander(f"📖 วิธีทำ {test_type}", expanded=True):
         st.image("assets/fonts/reach_target_guide.png", use_container_width=True)
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("### 🏥 ข้อมูลทางคลินิก")
+st.sidebar.markdown("## 🏥 ข้อมูลทางคลินิก")
 st.sidebar.info(
     "เครื่องมือนี้วิเคราะห์ **ความเร็ว ความแม่นยำ และคุณภาพการเคลื่อนไหว** "
     "เพื่อแยกแยะระหว่างความถนัดธรรมชาติกับภาวะ Learned Non-Use "
     "ออกแบบมาเพื่อคัดกรองผู้สูงอายุ"
 )
-st.sidebar.markdown("### 📝 เคล็ดลับ")
+st.sidebar.markdown("## 📝 เคล็ดลับ")
 st.sidebar.info(
     "**เพื่อผลลัพธ์ที่ดีที่สุด:**\n"
     "- 🪑 นั่งหลังตรง มือระดับอก\n"
@@ -511,7 +640,7 @@ st.sidebar.info(
     "- 👆 แตะนิ้วให้ใหญ่และเร็ว\n"
     "- ซ้าย/ขวาบนจอ = ตรงข้ามกับมือจริง"
 )
-st.sidebar.markdown("### 📚 เอกสารอ้างอิง")
+st.sidebar.markdown("## 📚 เอกสารอ้างอิง")
 st.sidebar.markdown(
     "- Amprimo et al. (2023) — MediaPipe hand tracking for neurorehab\n"
     "- Kwakkel et al. (2015) — Learned Non-Use after stroke\n"
@@ -520,8 +649,8 @@ st.sidebar.markdown(
 )
 
 st.sidebar.markdown("---")
-st.sidebar.markdown("### 📋 ประวัติการประเมิน")
-if st.sidebar.button("🔄 โหลดประวัติ"):
+st.sidebar.markdown("## 📋 ประวัติการประเมิน")
+if st.sidebar.button("🔄 โหลดประวัติ", use_container_width=True):
     st.rerun()
 history = session.list_sessions(10)
 if history:

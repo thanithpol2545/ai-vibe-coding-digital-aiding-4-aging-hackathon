@@ -9,6 +9,29 @@ class FeatureExtractor:
         self.fps = frame_data.get("fps", 30)
         self.frames = frame_data.get("frames", [])
 
+    def extract_arm_features(self, hand_name: str):
+        side = hand_name.lower()
+        angle_key = f"{side}_elbow_angle"
+        dist_key = f"{side}_reach_distance"
+        times, angles, distances = [], [], []
+        for f in self.frames:
+            arm = f.get("arm_angles")
+            if arm and angle_key in arm:
+                times.append(f["time_sec"])
+                angles.append(arm[angle_key])
+                distances.append(arm[dist_key])
+        if not angles:
+            return None
+        feats = config.HandFeatures(hand=hand_name)
+        feats.range_of_motion = float(np.ptp(angles))
+        max_dist = max(distances) if distances else 0.0
+        feats.reach_time = float(times[np.argmax(distances)] - times[0]) if len(times) > 1 else 0.0
+        if len(angles) > 2:
+            vel = np.diff(angles) / np.diff(times)
+            feats.avg_peak_velocity = float(np.max(np.abs(vel))) if len(vel) > 0 else 0.0
+            feats.movement_smoothness = float(np.std(vel))
+        return feats
+
     def _get_hand_trajectory(self, hand_name: str, landmark_idx=config.WRIST):
         times, positions = [], []
         for f in self.frames:

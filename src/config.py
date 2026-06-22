@@ -16,6 +16,29 @@ NUM_HANDS = 2
 MIN_DETECTION_CONFIDENCE = 0.5
 MIN_TRACKING_CONFIDENCE = 0.5
 
+# ─── Pose (MediaPipe Pose Landmarker) ───
+USE_POSE = True
+POSE_MODEL_NAME = "pose_landmarker_lite"
+POSE_MIN_DETECTION_CONFIDENCE = 0.5
+POSE_MIN_TRACKING_CONFIDENCE = 0.5
+
+# Pose landmark indices (COCO 17-keypoint style mapped to MediaPipe 33)
+LEFT_SHOULDER = 11
+RIGHT_SHOULDER = 12
+LEFT_ELBOW = 13
+RIGHT_ELBOW = 14
+LEFT_WRIST = 15
+RIGHT_WRIST = 16
+LEFT_HIP = 23
+RIGHT_HIP = 24
+
+ARM_LANDMARKS = [LEFT_SHOULDER, LEFT_ELBOW, LEFT_WRIST,
+                 RIGHT_SHOULDER, RIGHT_ELBOW, RIGHT_WRIST]
+
+# ─── Arm Angle Thresholds ───
+ARM_EXTENSION_ANGLE = 160  # degrees - full arm extension
+ARM_REST_ANGLE = 60        # degrees - arm at rest beside body
+
 # ─── YOLO ───
 YOLO_MODEL_PATH = "yolov8n.pt"
 YOLO_CONFIDENCE = 0.5

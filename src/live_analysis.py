@@ -38,7 +38,8 @@ def analyze_video_realtime(video_path):
         h_disp, w_disp = display.shape[:2]
 
         if frame_idx % step == 0:
-            hands = tracker.process_frame(frame)
+            out = tracker.process_frame(frame)
+            hands = out.get("hands", [])
             if hands:
                 frame_data.append({
                     "frame": frame_idx,

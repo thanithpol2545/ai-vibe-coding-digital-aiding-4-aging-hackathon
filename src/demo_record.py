@@ -40,7 +40,8 @@ while True:
 
     display = frame.copy()
     h, w = frame.shape[:2]
-    hands = tracker.process_frame(frame)
+    out = tracker.process_frame(frame)
+    hands = out.get("hands", [])
 
     if hands:
         for hand_data in hands:
