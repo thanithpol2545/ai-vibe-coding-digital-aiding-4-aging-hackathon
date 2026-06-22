@@ -38,7 +38,7 @@ EXERCISE_GUIDES = {
         "cues": {
             "setup": "🧍 ยืนในกรอบสีเขียว",
             "go": "เอื้อมแขนไปข้างหน้า! 🏃",
-            "steady": "平滑 ต่อเนื่อง! 💪",
+            "steady": "ต่อเนื่อง! 💪",
             "almost": "อีกไม่กี่ครั้ง! 🔥",
             "done": "ยอดเยี่ยม! 🎉",
             "nohand": "🖐️ หันฝ่ามือเข้าหากล้อง",
@@ -60,7 +60,7 @@ EXERCISE_GUIDES = {
             "go": "เริ่มด้วยแตะนิ้ว แล้วเอื้อมแขน! 🔄",
             "steady": "เก่งมาก! ทำสลับไปมา! 💪",
             "almost": "ใกล้เสร็จแล้ว! 🔥",
-            "done": " fantastic! 🎉",
+            "done": "เยี่ยมมาก! 🎉",
             "nohand": "🖐️ หันฝ่ามือเข้าหากล้อง",
             "outside": "👇 ขยับมือมาในกรอบ",
         },
@@ -122,14 +122,25 @@ def draw_setup_overlay(frame: np.ndarray, test_type: str):
 
     dim = cv2.addWeighted(frame, 0.35, np.zeros_like(frame), 0.65, 0)
 
-    bar_h = 48
+    bar_h = 60
     cv2.rectangle(dim, (0, 0), (w, bar_h), (30, 30, 30), -1)
-    _txt(dim, f"📋 {guide['icon']} {test_type} — เตรียมตัวก่อนบันทึก", 15, 33,
-         (255, 255, 100), 0.6, 2)
+    _txt(dim, f"📋 {guide['icon']} {test_type} — เตรียมตัวก่อนบันทึก", 15, 45,
+         (255, 255, 100), 0.7, 2)
 
-    y0 = 85
+    step_h = 28
+    total_steps_h = len(guide["prep"]) * step_h + 20
+    start_y = bar_h + 15
+
+    _box(dim, 10, start_y - 5, 280, start_y + total_steps_h, (0, 0, 0), 0.3)
+    _txt(dim, "📝 ขั้นตอนการเตรียมตัว", 20, start_y + 12, (255, 255, 200), 0.55, 1)
+
     for i, (emoji, text) in enumerate(guide["prep"]):
-        _txt(dim, f"{emoji}  {text}", 25, y0 + i * 30, (220, 220, 220), 0.5, 1)
+        y = start_y + 35 + i * step_h
+        step_num = i + 1
+        cv2.circle(dim, 35, y - 4, 10, (0, 200, 100), -1)
+        cv2.circle(dim, 35, y - 4, 10, (255, 255, 255), 1)
+        _txt(dim, str(step_num), 30, y, (255, 255, 255), 0.4, 1)
+        _txt(dim, f"{emoji}  {text}", 55, y, (220, 220, 220), 0.5, 1)
 
     zone_color = (0, 180, 80)
     if guide["hand_pos"] == "center":
@@ -144,21 +155,24 @@ def draw_setup_overlay(frame: np.ndarray, test_type: str):
         cv2.rectangle(dim, (zx1, zy1), (zx2, zy2), zone_color, 3)
         _txt(dim, "🧍  ยืนในบริเวณนี้", zx1 + 10, zy1 + 28, zone_color, 0.5, 2, bg=(0, 0, 0))
 
-    _txt(dim, get_cue(test_type, "setup"), w // 2 - 140, h - 45,
-         (255, 255, 0), 0.55, 2, bg=(0, 0, 0))
-    _txt(dim, "🎬 กดปุ่ม 'เริ่มบันทึก' ด้านล่าง →", w // 2 - 150, h - 15,
-         (180, 180, 180), 0.4, 1)
+    _txt(dim, get_cue(test_type, "setup"), w // 2 - 160, h - 55,
+         (255, 255, 0), 0.6, 2, bg=(0, 0, 0))
+    _txt(dim, "🎬 กดปุ่ม 'เริ่มบันทึก' ด้านล่าง →", w // 2 - 170, h - 20,
+         (180, 180, 180), 0.45, 1)
+
+    _txt(dim, "🔊 ระบบจะแนะนำด้วยเสียง", w - 190, h - 80,
+         (100, 200, 255), 0.4, 1, bg=(0, 0, 0))
 
     return dim
 
 
 def draw_countdown(frame: np.ndarray, seconds_left: int):
     h, w = frame.shape[:2]
-    _box(frame, w // 2 - 70, h // 2 - 50, w // 2 + 70, h // 2 + 40, (0, 0, 0), 0.4)
+    _box(frame, w // 2 - 100, h // 2 - 70, w // 2 + 100, h // 2 + 60, (0, 0, 0), 0.4)
     color = (0, 255, 100) if seconds_left > 1 else (0, 100, 255)
-    cv2.putText(frame, str(seconds_left), (w // 2 - 35, h // 2 + 15),
-                cv2.FONT_HERSHEY_SIMPLEX, 3, color, 6)
-    _txt(frame, "เตรียม...", w // 2 - 50, h // 2 - 60, (200, 200, 200), 0.5, 1)
+    cv2.putText(frame, str(seconds_left), (w // 2 - 50, h // 2 + 25),
+                cv2.FONT_HERSHEY_SIMPLEX, 4, color, 8)
+    _txt(frame, "เตรียมตัว...", w // 2 - 75, h // 2 - 75, (200, 200, 200), 0.6, 1)
 
 
 def draw_recording_overlay(frame: np.ndarray, hands_detected: bool,
@@ -179,14 +193,24 @@ def draw_recording_overlay(frame: np.ndarray, hands_detected: bool,
 
     if not hands_detected:
         _txt(frame, get_cue(test_type, "nohand"),
-             w // 2 - 140, h - 25, (255, 200, 0), 0.5, 2, bg=(0, 0, 0))
+             w // 2 - 160, h - 25, (255, 200, 0), 0.55, 2, bg=(0, 0, 0))
         return
 
-    if remaining > 4:
+    progress = 1.0 - (remaining / max(duration, 1))
+    bar_w = int(200 * progress)
+    bar_x = w // 2 - 100
+    bar_y = h - 50
+    cv2.rectangle(frame, (bar_x, bar_y), (bar_x + 200, bar_y + 10), (50, 50, 50), -1)
+    if bar_w > 0:
+        cv2.rectangle(frame, (bar_x, bar_y), (bar_x + bar_w, bar_y + 10), (0, 200, 100), -1)
+
+    if remaining > 6:
         msg, clr = get_cue(test_type, "go"), (100, 255, 100)
+    elif remaining > 3:
+        msg, clr = get_cue(test_type, "steady"), (200, 255, 100)
     elif remaining > 0:
         msg, clr = get_cue(test_type, "almost"), (0, 200, 255)
     else:
         msg, clr = get_cue(test_type, "done"), (0, 255, 200)
 
-    _txt(frame, msg, w // 2 - 150, h - 25, clr, 0.55, 2, bg=(0, 0, 0))
+    _txt(frame, msg, w // 2 - 160, h - 25, clr, 0.6, 2, bg=(0, 0, 0))

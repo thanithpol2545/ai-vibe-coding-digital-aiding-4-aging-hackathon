@@ -11,6 +11,7 @@ import guidance as _g
 import session
 from report import AssessmentReport
 from logger import setup_logger
+import voice_guide as vg
 
 logger = setup_logger("app")
 
@@ -44,6 +45,7 @@ st.sidebar.header("⚙️ ตั้งค่า")
 input_mode = st.sidebar.radio("โหมดอินพุต", ["Upload Video", "Webcam (Live)"], format_func=lambda x: "📂 อัปโหลดวิดีโอ" if x == "Upload Video" else "📷 กล้องเว็บแคม")
 test_type = st.sidebar.selectbox("แบบทดสอบ", ["Finger Tapping", "Reach-to-Target", "Combined"], format_func=lambda x: {"Finger Tapping": "👆 แตะนิ้ว", "Reach-to-Target": "🏃 เอื้อมแขน", "Combined": "🔄 ผสมทั้งสอง"}[x])
 duration = st.sidebar.slider("ระยะเวลาบันทึก (วินาที)", 5, 30, 10)
+voice_enabled = st.sidebar.checkbox("🔊 เปิดคำแนะนำด้วยเสียง", value=True)
 
 # ─── Initialize ───
 @st.cache_resource
@@ -58,13 +60,46 @@ tracker = get_tracker()
 classifier = get_classifier()
 
 # ─── Session State ───
-for key in ["recording", "result", "left_feats", "right_feats", "frame_count", "cam_state", "saved_session_id"]:
+for key in ["recording", "result", "left_feats", "right_feats", "frame_count", "cam_state", "saved_session_id", "voice_played"]:
     if key not in st.session_state:
         st.session_state[key] = None if key in ["result", "saved_session_id"] else (
-            {} if key in ["left_feats", "right_feats"] else (
+            {} if key in ["left_feats", "right_feats", "voice_played"] else (
                 False if key == "recording" else ("preview" if key == "cam_state" else 0)
             )
         )
+
+
+def _play_cue(test_type: str, phase: str):
+    if not st.session_state.get("voice_enabled", True):
+        return ""
+    key = f"{test_type}_{phase}"
+    played = st.session_state.voice_played
+    if played.get(key):
+        return ""
+    played[key] = True
+    return vg.get_cue_audio(test_type, phase)
+
+
+def _play_countdown(num: int):
+    if not st.session_state.get("voice_enabled", True):
+        return ""
+    key = f"countdown_{num}"
+    played = st.session_state.voice_played
+    if played.get(key):
+        return ""
+    played[key] = True
+    return vg.get_countdown_audio(num)
+
+
+def _play_common(phase: str):
+    if not st.session_state.get("voice_enabled", True):
+        return ""
+    key = f"common_{phase}"
+    played = st.session_state.voice_played
+    if played.get(key):
+        return ""
+    played[key] = True
+    return vg.get_common_audio(phase)
 
 
 def process_video_progressive(video_path: str, progress_bar, frame_placeholder, status_text, test_type="Finger Tapping"):
@@ -266,6 +301,9 @@ if input_mode == "Upload Video":
         if result:
             progress_bar.progress(1.0)
             status_text.success("✅ วิเคราะห์เสร็จสิ้น!")
+            complete_audio = _play_common("complete")
+            if complete_audio:
+                st.markdown(complete_audio, unsafe_allow_html=True)
             display_metrics(result)
             _show_save_buttons(result)
         else:
@@ -299,6 +337,9 @@ else:
 
         if state == "preview":
             display = _g.draw_setup_overlay(frame.copy(), test_type)
+            setup_audio = _play_cue(test_type, "setup")
+            if setup_audio:
+                st.markdown(setup_audio, unsafe_allow_html=True)
             hands = tracker.process_frame(frame)
             in_zone = False
 
@@ -326,6 +367,7 @@ else:
             time.sleep(0.03)
 
         elif state == "countdown":
+            _play_common("ready")
             cam_fail = False
             for i in range(3, 0, -1):
                 if cam_fail:
@@ -338,6 +380,9 @@ else:
                         break
                     _g.draw_countdown(frame, i)
                     FRAME_WINDOW.image(frame, channels="BGR")
+                countdown_audio = _play_countdown(i)
+                if countdown_audio:
+                    st.markdown(countdown_audio, unsafe_allow_html=True)
             if cam_fail:
                 break
             state = "recording"
@@ -348,6 +393,10 @@ else:
 
         elif state == "recording":
             start_time = st.session_state.rec_start
+            go_audio = _play_cue(test_type, "go")
+            if go_audio:
+                st.markdown(go_audio, unsafe_allow_html=True)
+            last_voice_zone = "go"
             while (time.time() - start_time) < duration:
                 ret, frame = cap.read()
                 if not ret:
@@ -373,6 +422,17 @@ else:
                                         cv2.FONT_HERSHEY_SIMPLEX, 0.7, clr, 2)
 
                 elapsed = int(time.time() - start_time)
+                remaining = duration - elapsed
+                if remaining == 5 and last_voice_zone != "steady":
+                    audio = _play_cue(test_type, "steady")
+                    if audio:
+                        st.markdown(audio, unsafe_allow_html=True)
+                    last_voice_zone = "steady"
+                elif remaining == 2 and last_voice_zone != "almost":
+                    audio = _play_cue(test_type, "almost")
+                    if audio:
+                        st.markdown(audio, unsafe_allow_html=True)
+                    last_voice_zone = "almost"
                 _g.draw_recording_overlay(frame, hands_detected, test_type, elapsed, duration)
                 st.session_state.frame_count += 1
                 FRAME_WINDOW.image(frame, channels="BGR")
@@ -394,6 +454,9 @@ else:
                 lf.symmetry_index = sym
                 rf.symmetry_index = sym
                 st.session_state.result = classifier.classify(lf, rf)
+            done_audio = _play_cue(test_type, "done")
+            if done_audio:
+                st.markdown(done_audio, unsafe_allow_html=True)
             state = "done"
             st.session_state.cam_state = "done"
             st.balloons()
@@ -414,6 +477,21 @@ else:
             for k in ["result", "cam_state", "saved_session_id"]:
                 st.session_state[k] = None if k in ["result", "saved_session_id"] else "preview"
             st.rerun()
+
+st.sidebar.markdown("---")
+with st.sidebar.expander(f"📖 วิธีทำ {test_type}", expanded=True):
+    guide_data = _g.EXERCISE_GUIDES.get(test_type, _g.EXERCISE_GUIDES["Finger Tapping"])
+    for i, (emoji, text) in enumerate(guide_data["prep"]):
+        st.markdown(f"**ขั้นตอนที่ {i+1}:** {emoji} {text}")
+    st.markdown("---")
+    st.markdown(f"**⏱ ระยะเวลา:** {duration} วินาที")
+    st.markdown(f"**📍 ท่า:** {guide_data['position']}")
+    if voice_enabled:
+        st.markdown("🔊 **เปิดเสียงแนะนำ**")
+    if guide_data["hand_pos"] == "center":
+        st.image("assets/fonts/finger_tapping_guide.png", use_container_width=True)
+    elif guide_data["hand_pos"] == "full_body":
+        st.image("assets/fonts/reach_target_guide.png", use_container_width=True)
 
 st.sidebar.markdown("---")
 st.sidebar.markdown("### 🏥 ข้อมูลทางคลินิก")
