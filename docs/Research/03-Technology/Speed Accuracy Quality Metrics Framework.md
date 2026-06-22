@@ -202,3 +202,105 @@ Default weights: w1=0.3, w2=0.3, w3=0.4, w4=0.25, w5=0.35, w6=0.40
 5. **Alt Murphy, M., et al.** (2011). Kinematic variables quantifying upper-extremity performance after stroke during reaching and drinking from a glass. *Neurorehabilitation and Neural Repair*, 25(1), 71-80.
 
 6. **Hogan, N. & Sternad, D.** (2009). Sensitivity of smoothness measures to movement duration, amplitude, and arrests. *Journal of Motor Behavior*, 41(6), 529-534.
+
+---
+
+## 7. Implementation: FeatureExtractor
+
+**File:** `src/features.py` — Class `FeatureExtractor`
+
+### 7.1 Tapping Features (`extract_tapping_features`)
+
+Tracks **INDEX_TIP (landmark 8)** trajectory through time. Peak detection via `scipy.signal.find_peaks` on inverted y-position.
+
+| Feature | Method | Description |
+|---------|--------|-------------|
+| `tapping_speed` | 1 / mean(inter-tap interval) | Taps per second |
+| `tap_count` | `find_peaks(-y_pos, distance, prominence)` | Number of detected tap peaks |
+| `tap_regularity` | 1 − std(interval) / mean(interval) | 1.0 = perfect rhythm |
+| `avg_amplitude` | mean(peak − valley) in y-axis | Vertical tap displacement |
+| `avg_peak_velocity` | mean(speed > 80th percentile) | High-velocity movement bursts |
+| `path_efficiency` | straight_dist / total_dist | 1.0 = straight line |
+| `movement_smoothness` | SPARC (spectral arc length) | Higher = smoother |
+| `tremor_index` | high-freq energy / low-freq energy | Higher = more tremor |
+| `endpoint_error` | mean distance of tap endpoints from origin | Spatial consistency |
+| `range_of_motion` | peak-to-peak y displacement | Movement range |
+
+**Peak Detection Parameters:**
+- Minimum distance: `max(3, fps // 10)` frames
+- Minimum prominence: 0.005 (normalized coords)
+- Pre-filter: median filter (kernel size = min(5, len//2×2+1))
+
+### 7.2 Reach Features (`extract_reach_features`)
+
+For reach-to-target tests. Same INDEX_TIP tracking.
+
+| Feature | Method | Description |
+|---------|--------|-------------|
+| `avg_peak_velocity` | max(speed) | Peak reach velocity |
+| `reach_time` | time at max velocity − start time | Time to peak speed |
+| `path_efficiency` | straight_dist / total_dist | Reach directness |
+| `movement_smoothness` | Jerk cost (Σ ‖jerk‖²) | Lower = smoother |
+| `range_of_motion` | max distance from start | Reach extent |
+
+### 7.3 Symmetry Index
+
+```python
+symmetry = mean(|L − R| / max(|L|, |R|, 1e-10)) over:
+    tapping_speed, tap_regularity, path_efficiency,
+    movement_smoothness, range_of_motion
+```
+
+- **0.0** = perfect symmetry
+- **Higher** = more asymmetric
+
+---
+
+## 8. Implementation: DominanceClassifier
+
+**File:** `src/classifier.py` — Class `DominanceClassifier`
+
+Rule-based heuristic classifier (no ML model). Uses feature asymmetry to determine dominance and Learned Non-Use risk.
+
+### 8.1 Step 1: Dominance Score
+
+```python
+score = (R_speed − L_speed) + (R_regularity − L_regularity)
+      + (R_efficiency − L_efficiency) − (R_tremor − L_tremor) × 0.5
+```
+
+- `score < 0` → **Left dominant**
+- `score > 0` → **Right dominant**
+- `confidence = min(abs(score) × 2, 0.99)`
+
+### 8.2 Step 2: Performance Ratio
+
+```python
+ratios = [min(weaker / max(stronger, 1e-10), 1.0)
+          for metric in (tapping_speed, tap_regularity,
+                         path_efficiency, range_of_motion)]
+ratio = mean(ratios)
+```
+
+### 8.3 Step 3: Risk Classification
+
+| Condition | LNU Risk | Result |
+|-----------|----------|--------|
+| Stronger hand not tested | 0% | Insufficient data |
+| Weaker hand not tested | capped 20% | Limited data warning |
+| Weaker ratio < 0.55 | 55–95% | **Learned Non-Use** |
+| Mean asymmetry > 0.30 | 0–50% | Moderate asymmetry |
+| Otherwise | 0–30% | Normal variation |
+
+### 8.4 Thresholds (`config.py`)
+
+```python
+asymmetry_threshold = 0.30   # Above = moderate asymmetry
+non_use_threshold = 0.45     # Below 55% performance = LNU flag
+```
+
+### 8.5 Edge Cases
+
+- If `diff == 0` (perfectly balanced): defaults to "Right" dominant (rare in practice)
+- If no hands detected: returns `ClassificationResult` with risk = 0, detail message
+- One hand only: capped risk at 20%, warns about limited data

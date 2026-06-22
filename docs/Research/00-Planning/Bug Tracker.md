@@ -1,8 +1,10 @@
 # Bug Tracker & Known Issues
 
+---
+
 ## Fixed Bugs
 
-### B1: `draw_recording_overlay() missing 'duration'`
+### B1: `draw_recording_overlay()` missing `duration`
 - **File**: `app.py:318`
 - **Cause**: Stale `__pycache__` from before `duration` parameter was added
 - **Fix**: Delete `__pycache__` directory
@@ -50,19 +52,21 @@
 - **Fix**: Added `cam_fail` flag to break outer loop on camera failure
 - **Status**: ✅ Fixed
 
+---
+
 ## Remaining Issues
 
-### 19: Hardcoded 30 FPS in webcam mode
+### I1: Hardcoded 30 FPS in webcam mode
 - **File**: `app.py:245`
-- **Impact**: Timing calculations slightly off if camera delivers different FPS
+- **Impact**: Timing slightly off if camera delivers different FPS
 - **Workaround**: Near enough for screening purposes
 
-### 110: `endpoint_error` measures distance from origin
+### I2: `endpoint_error` measures distance from origin
 - **File**: `features.py:108-111`
 - **Impact**: Metric has no clinical meaning — always reports large values
 - **Note**: Not used in classification, only displayed
 
-### 111: Reach features overwrite tapping features in upload mode
+### I3: Reach features overwrite tapping features in upload mode
 - **File**: `app.py:126-131`
 - **Impact**: `path_efficiency` and `movement_smoothness` from reach replace tapping values
 - **Note**: Affects Combined test type only

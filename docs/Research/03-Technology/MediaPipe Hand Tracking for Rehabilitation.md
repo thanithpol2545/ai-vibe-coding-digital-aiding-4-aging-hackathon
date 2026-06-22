@@ -174,3 +174,130 @@ while cap.isOpened():
 4. **Bazarevsky, V., et al.** (2019). MediaPipe Hands: On-device Real-time Hand Tracking. arXiv:2006.10214. https://arxiv.org/abs/2006.10214
 
 5. **Lugaresi, C., et al.** (2019). MediaPipe: A Framework for Building Perception Pipelines. arXiv:1906.08172.
+
+---
+
+## 8. Implementation: HandTracker Class
+
+### 8.1 File: `src/hand_tracker.py`
+
+```python
+class HandTracker:
+    def __init__(self, model_path=None, use_yolo=True):
+        # Auto-downloads model on first run
+        # MediaPipe HandLandmarker (IMAGE mode, 2 hands)
+        # YOLO validation (optional, enabled by default)
+    
+    def process_frame(self, frame: np.ndarray):
+        # BGR→RGB → MediaPipe detect → parse → YOLO validate → return
+    
+    def process_video(self, video_path, max_frames=None, step=1):
+        # Iterates frames, calls process_frame, builds frame_data list
+    
+    def close(self):
+        self.detector.close()
+```
+
+### 8.2 Key Landmarks Used
+
+| Index | Name | Usage |
+|-------|------|-------|
+| 0 | WRIST | Trajectory reference, position tracking |
+| 4 | THUMB_TIP | Fingertip detection for aperture |
+| 8 | INDEX_TIP | **Primary tracking point** for tapping & reach |
+| 12 | MIDDLE_TIP | Secondary reference |
+| 16 | RING_TIP | Secondary reference |
+| 20 | PINKY_TIP | Secondary reference |
+
+### 8.3 Handedness Detection
+
+MediaPipe returns `handedness` (Left/Right) per detected hand via its internal classification. The system uses `result.handedness[idx][0].category_name` to separate left/right feature extraction pipelines.
+
+### 8.4 Frame Data Output Structure
+
+```python
+{
+    "fps": 30,
+    "total_frames": 0,
+    "frames": [
+        {
+            "frame": 0,
+            "time_sec": 0.0,
+            "hands": [
+                {
+                    "hand": "Left",
+                    "landmarks": np.array([[x, y, z], ...]),       # 21×3 pixel coords
+                    "landmarks_norm": np.array([[x, y, z], ...]),  # 21×3 normalized [0,1]
+                    "yolo_validated": True,
+                    "yolo_overlap": 0.85,
+                }
+            ]
+        }
+    ]
+}
+```
+
+### 8.5 Performance
+
+| Component | GPU Inference | CPU Inference |
+|-----------|---------------|---------------|
+| MediaPipe HandLandmarker | ~5–15ms/frame | ~15–30ms/frame |
+| YOLO person detection | ~10–30ms/frame | ~50–100ms/frame |
+| **Total** | **~15–45ms** | **~65–130ms** |
+
+Webcam mode skips every other frame (`webcam_step % 2 == 0`) to maintain usable FPS.
+
+---
+
+## 9. YOLO Person Validation
+
+### 9.1 Motivation
+
+MediaPipe HandLandmarker can produce false positives on textures/patterns that vaguely resemble hands. YOLO (`yolov8n.pt`) person detection acts as a **spatial gatekeeper**: if no person bounding box overlaps with a detected hand's landmark bounding box, that hand is likely a false positive.
+
+### 9.2 File: `src/yolo_detector.py`
+
+```python
+class YOLODetector:
+    def __init__(self, model_path="yolov8n.pt", conf_threshold=0.5, iou_threshold=0.5)
+    def detect_persons(frame) → [{"bbox": (x1,y1,x2,y2), "confidence": float}]
+    def validate_landmarks(landmarks, person_boxes, min_overlap=0.15) → (is_valid, overlap_ratio)
+    def validate_hands(hands_data, frame) → [validated_hands]
+```
+
+### 9.3 Overlap Algorithm
+
+```
+hand_bbox = [min(x), min(y), max(x), max(y)] from 21 landmarks
+for each person_bbox from YOLO:
+    compute intersection area / hand area
+keep hand if max_overlap >= MIN_HAND_OVERLAP (default 0.15)
+```
+
+### 9.4 Configuration (`config.py`)
+
+```python
+YOLO_MODEL_PATH = "yolov8n.pt"       # Auto-downloaded by ultralytics
+YOLO_CONFIDENCE = 0.5
+YOLO_IOU = 0.5
+YOLO_MIN_HAND_OVERLAP = 0.15
+```
+
+### 9.5 Integration Flow
+
+```
+frame (BGR)
+  → MediaPipe → hands_data (list of hand dicts with landmarks)
+  → YOLO → person_boxes (COCO class 0)
+  → For each hand: compute hand_bbox from landmarks
+  → Compute overlap with each person_bbox
+  → Keep hands with overlap >= MIN_HAND_OVERLAP
+  → Return filtered list
+```
+
+### 9.6 Fallback
+
+If `ultralytics` is not installed or the model file is missing:
+- YOLO init fails gracefully → `self.yolo = None`
+- MediaPipe runs alone without validation
+- No crash, only reduced false-positive rejection
