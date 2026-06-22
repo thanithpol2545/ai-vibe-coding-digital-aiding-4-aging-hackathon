@@ -1,0 +1,16 @@
+{
+  "60-L-cut.mp4": {
+    "dominant_hand": "Right",
+    "confidence": 0.99,
+    "learned_non_use_risk": 0.4696455235528221,
+    "is_learned_non_use": true,
+    "details": "Significant performance gap detected. Left hand at 53% of Right hand. Suggests possible Learned Non-Use — clinical assessment recommended."
+  },
+  "67-R-cut.mp4": {
+    "dominant_hand": "Left",
+    "confidence": 0.9249684669347964,
+    "learned_non_use_risk": 0.4820324320277653,
+    "is_learned_non_use": false,
+    "details": "Moderate asymmetry (index=0.60). Dominant hand: Left. Monitor for potential non-use pattern."
+  }
+}

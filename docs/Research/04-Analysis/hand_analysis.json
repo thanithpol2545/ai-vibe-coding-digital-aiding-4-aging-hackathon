@@ -1,0 +1,26 @@
+{
+  "60-L-cut.mp4": {
+    "fps": 30.0,
+    "total_frames": 3802,
+    "duration_sec": 126.73333333333333,
+    "frames_with_hands": 9,
+    "detection_rate_pct": 0.2,
+    "hand_distribution": {
+      "Left": 6,
+      "Right": 3
+    },
+    "sample_interval": 30
+  },
+  "67-R-cut.mp4": {
+    "fps": 30.0,
+    "total_frames": 3969,
+    "duration_sec": 132.3,
+    "frames_with_hands": 5,
+    "detection_rate_pct": 0.1,
+    "hand_distribution": {
+      "Right": 3,
+      "Left": 2
+    },
+    "sample_interval": 30
+  }
+}

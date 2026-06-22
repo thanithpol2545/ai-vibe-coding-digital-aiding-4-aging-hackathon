@@ -1,0 +1,248 @@
+{
+  "main": {
+    "id": "28bc0b1fc6c95361",
+    "type": "split",
+    "children": [
+      {
+        "id": "09b2731e1cded2f7",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "4d1abd510516f00e",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "05-Recording-Guide/Self-Recording Protocol.md",
+                "mode": "source",
+                "source": false
+              },
+              "icon": "lucide-file",
+              "title": "Self-Recording Protocol"
+            }
+          }
+        ]
+      },
+      {
+        "id": "983b9070a4e3e4f6",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "3a6861e70b76beef",
+            "type": "leaf",
+            "pinned": true,
+            "state": {
+              "type": "graph",
+              "state": {},
+              "pinned": true,
+              "icon": "lucide-git-fork",
+              "title": "Graph view"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "vertical"
+  },
+  "left": {
+    "id": "02a69a0bb995b9c2",
+    "type": "split",
+    "children": [
+      {
+        "id": "c2c165072c63cd94",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "d87cc996e2ac41a8",
+            "type": "leaf",
+            "state": {
+              "type": "file-explorer",
+              "state": {
+                "sortOrder": "alphabetical",
+                "autoReveal": false
+              },
+              "icon": "lucide-folder-closed",
+              "title": "Files"
+            }
+          },
+          {
+            "id": "8acdec9a20672f24",
+            "type": "leaf",
+            "state": {
+              "type": "search",
+              "state": {
+                "query": "",
+                "matchingCase": false,
+                "explainSearch": false,
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical"
+              },
+              "icon": "lucide-search",
+              "title": "Search"
+            }
+          },
+          {
+            "id": "7e9cf91b4c42fa7d",
+            "type": "leaf",
+            "state": {
+              "type": "bookmarks",
+              "state": {},
+              "icon": "lucide-bookmark",
+              "title": "Bookmarks"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300
+  },
+  "right": {
+    "id": "c9c1dbfd9f484d95",
+    "type": "split",
+    "children": [
+      {
+        "id": "801845b089ed10db",
+        "type": "tabs",
+        "children": [
+          {
+            "id": "09382b3e1712acdb",
+            "type": "leaf",
+            "state": {
+              "type": "backlink",
+              "state": {
+                "file": "04-Analysis/Video Analysis Results.md",
+                "collapseAll": false,
+                "extraContext": false,
+                "sortOrder": "alphabetical",
+                "showSearch": false,
+                "searchQuery": "",
+                "backlinkCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-coming-in",
+              "title": "Backlinks for Video Analysis Results"
+            }
+          },
+          {
+            "id": "8117f76b7befac16",
+            "type": "leaf",
+            "state": {
+              "type": "outgoing-link",
+              "state": {
+                "file": "04-Analysis/Video Analysis Results.md",
+                "linksCollapsed": false,
+                "unlinkedCollapsed": true
+              },
+              "icon": "links-going-out",
+              "title": "Outgoing links from Video Analysis Results"
+            }
+          },
+          {
+            "id": "b75700bb89a93cd0",
+            "type": "leaf",
+            "state": {
+              "type": "tag",
+              "state": {
+                "sortOrder": "frequency",
+                "useHierarchy": true,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-tags",
+              "title": "Tags"
+            }
+          },
+          {
+            "id": "7e43aca4e7a0821b",
+            "type": "leaf",
+            "state": {
+              "type": "all-properties",
+              "state": {
+                "sortOrder": "frequency",
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-archive",
+              "title": "All properties"
+            }
+          },
+          {
+            "id": "2dc70915e0f9b708",
+            "type": "leaf",
+            "state": {
+              "type": "outline",
+              "state": {
+                "file": "04-Analysis/Video Analysis Results.md",
+                "followCursor": false,
+                "showSearch": false,
+                "searchQuery": ""
+              },
+              "icon": "lucide-list",
+              "title": "Outline of Video Analysis Results"
+            }
+          }
+        ]
+      }
+    ],
+    "direction": "horizontal",
+    "width": 300,
+    "collapsed": true
+  },
+  "left-ribbon": {
+    "hiddenItems": {
+      "switcher:Open quick switcher": false,
+      "graph:Open graph view": false,
+      "canvas:Create new canvas": false,
+      "daily-notes:Open today's daily note": false,
+      "templates:Insert template": false,
+      "command-palette:Open command palette": false,
+      "bases:Create new base": false
+    }
+  },
+  "active": "4d1abd510516f00e",
+  "lastOpenFiles": [
+    "01-Problem/Video Content Analysis.md",
+    "00-PRD/PRD.md",
+    "00-Planning/Development Plan.md",
+    "02-Medical-Background/Constraint-Induced Movement Therapy.md",
+    "02-Medical-Background/Finger Tapping Test.md",
+    "02-Medical-Background/Hand Dexterity Assessment Methods.md",
+    "03-Technology/MediaPipe Hand Tracking for Rehabilitation.md",
+    "03-Technology/Speed Accuracy Quality Metrics Framework.md",
+    "04-Analysis/detection_samples/67-R-cut/detect_2_frame1080_t36s.jpg",
+    "04-Analysis/detection_samples/60-L-cut/detect_5_frame185_t6s.jpg",
+    "04-Analysis/detection_samples/60-L-cut/detect_1_frame160_t5s.jpg",
+    "05-Recording-Guide/Self-Recording Protocol.md",
+    "keyframes/frame_1800s.jpg",
+    "keyframes/frame_1500s.jpg",
+    "keyframes/frame_600s.jpg",
+    "keyframes/frame_356s.jpg",
+    "keyframes/frame_48s.jpg",
+    "slides/slide_6300s.jpg",
+    "slides/slide_7200s.jpg",
+    "04-Analysis/Video Analysis Results.md",
+    "keyframes",
+    "Main.md",
+    "02-Medical-Background/Learned Non-Use Syndrome.md",
+    "Welcome.md",
+    "Video Analysis Results.md",
+    "04-Analysis/hand_analysis.json",
+    "01-Problem/Resource Video Notes.md",
+    "01-Problem/Problem Analysis.md",
+    "04-Analysis",
+    "03-Technology",
+    "02-Medical-Background",
+    "01-Problem",
+    "Constraint-Induced Movement Therapy.md",
+    "Learned Non-Use Syndrome.md",
+    "Problem Analysis.md",
+    "Speed Accuracy Quality Metrics Framework.md",
+    "Hand Dexterity Assessment Methods.md",
+    "Finger Tapping Test.md",
+    "hand_analysis.json",
+    "Resource Video Notes.md",
+    "MediaPipe Hand Tracking for Rehabilitation.md"
+  ]
+}

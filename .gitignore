@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+
+# Node
+node_modules/
+.env
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+Thumbs.db
+.DS_Store
+
+# Video (large files)
+video/*.mp4
+video/*.mov
+video/*.avi
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Assets (large video files)
+assets/*.mp4
+assets/*.mov
+assets/*.avi
+
+# Model file
+assets/hand_landmarker.task
+
+# Temp
+temp/
+*.tmp
