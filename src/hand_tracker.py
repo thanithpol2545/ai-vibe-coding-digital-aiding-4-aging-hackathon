@@ -1,8 +1,11 @@
-import cv2, numpy as np, urllib.request, os
+import cv2, numpy as np, urllib.request, os, logging
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 import config
+from logger import setup_logger
+
+logger = setup_logger("hand_tracker")
 
 
 class HandTracker:
@@ -10,7 +13,7 @@ class HandTracker:
         model_path = model_path or config.MODEL_PATH
         if not os.path.exists(model_path):
             os.makedirs(os.path.dirname(model_path), exist_ok=True)
-            print(f"Downloading hand landmarker model to {model_path}...")
+            logger.info("Downloading hand landmarker model to %s", model_path)
             urllib.request.urlretrieve(config.MODEL_URL, model_path)
         base_options = python.BaseOptions(model_asset_path=model_path)
         options = vision.HandLandmarkerOptions(
@@ -29,9 +32,9 @@ class HandTracker:
                     model_path=config.YOLO_MODEL_PATH,
                     conf_threshold=config.YOLO_CONFIDENCE,
                 )
-                print("YOLO hand validation enabled")
+                logger.info("YOLO hand validation enabled")
             except Exception as e:
-                print(f"YOLO not available — skipping hand validation ({e})")
+                logger.warning("YOLO not available — skipping hand validation: %s", e)
 
     def process_frame(self, frame: np.ndarray):
         rgb = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)

@@ -1,53 +1,52 @@
-import sys, os
+import sys, os, logging
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import config
 from hand_tracker import HandTracker
 from features import FeatureExtractor
 from classifier import DominanceClassifier
 import json
+from logger import setup_logger
+
+logger = setup_logger("run_analysis")
 
 def analyze_video(video_path, label=""):
-    print(f"\n{'='*60}")
-    print(f"ANALYZING: {label or video_path}")
-    print(f"{'='*60}")
+    logger.info("=" * 60)
+    logger.info("ANALYZING: %s", label or video_path)
+    logger.info("=" * 60)
     
     tracker = HandTracker()
     data = tracker.process_video(video_path, step=1)
     tracker.close()
     
     n = len(data["frames"])
-    print(f"Frames with hands detected: {n}")
+    logger.info("Frames with hands detected: %d", n)
     
     if n < 3:
-        print("Too few hand detections to analyze")
+        logger.warning("Too few hand detections to analyze")
         return None
     
-    # Count hand types
     hand_counts = {"Left": 0, "Right": 0}
     for f in data["frames"]:
         for h in f["hands"]:
             if h["hand"] in hand_counts:
                 hand_counts[h["hand"]] += 1
-    print(f"Hand distribution: {hand_counts}")
+    logger.info("Hand distribution: %s", hand_counts)
     
-    # Note: MediaPipe labels hands from camera perspective.
-    # If person faces camera, their actual Left appears on camera Right.
-    # We detect both, compare performance, and report relative dominance.
     extractor = FeatureExtractor(data)
     
     for hand_name in ["Left", "Right"]:
         feats = extractor.extract_all(hand_name, "tapping")
-        print(f"\n  {hand_name} Hand:")
-        print(f"    Tapping Speed:   {feats.tapping_speed:.3f} taps/s")
-        print(f"    Tap Count:       {feats.tap_count}")
-        print(f"    Tap Regularity:  {feats.tap_regularity:.3f}")
-        print(f"    Avg Amplitude:   {feats.avg_amplitude:.4f}")
-        print(f"    Peak Velocity:   {feats.avg_peak_velocity:.4f}")
-        print(f"    Path Efficiency: {feats.path_efficiency:.3f}")
-        print(f"    Smoothness:      {feats.movement_smoothness:.3f}")
-        print(f"    Range of Motion: {feats.range_of_motion:.4f}")
-        print(f"    Tremor Index:    {feats.tremor_index:.3f}")
-        print(f"    Endpoint Error:  {feats.endpoint_error:.4f}")
+        logger.info("  %s Hand:", hand_name)
+        logger.info("    Tapping Speed:   %.3f taps/s", feats.tapping_speed)
+        logger.info("    Tap Count:       %d", feats.tap_count)
+        logger.info("    Tap Regularity:  %.3f", feats.tap_regularity)
+        logger.info("    Avg Amplitude:   %.4f", feats.avg_amplitude)
+        logger.info("    Peak Velocity:   %.4f", feats.avg_peak_velocity)
+        logger.info("    Path Efficiency: %.3f", feats.path_efficiency)
+        logger.info("    Smoothness:      %.3f", feats.movement_smoothness)
+        logger.info("    Range of Motion: %.4f", feats.range_of_motion)
+        logger.info("    Tremor Index:    %.3f", feats.tremor_index)
+        logger.info("    Endpoint Error:  %.4f", feats.endpoint_error)
     
     left_feats = extractor.extract_all("Left", "tapping")
     right_feats = extractor.extract_all("Right", "tapping")
@@ -67,13 +66,13 @@ def analyze_video(video_path, label=""):
     else:
         actual_detected = result.dominant_hand
     
-    print(f"\n  CLASSIFICATION RESULT:")
-    print(f"    Dominant (camera): {result.dominant_hand}")
-    print(f"    Dominant (person): {actual_detected}")
-    print(f"    Confidence:        {result.confidence:.2%}")
-    print(f"    LNU Risk:          {result.learned_non_use_risk:.2%}")
-    print(f"    Is LNU:            {result.is_learned_non_use}")
-    print(f"    Details:           {result.details}")
+    logger.info("  CLASSIFICATION RESULT:")
+    logger.info("    Dominant (camera): %s", result.dominant_hand)
+    logger.info("    Dominant (person): %s", actual_detected)
+    logger.info("    Confidence:        %.2f%%", result.confidence * 100)
+    logger.info("    LNU Risk:          %.2f%%", result.learned_non_use_risk * 100)
+    logger.info("    Is LNU:            %s", result.is_learned_non_use)
+    logger.info("    Details:           %s", result.details)
     
     return result
 
@@ -103,4 +102,4 @@ with open(out_path, "w", encoding="utf-8") as f:
         for k, v in results.items()
     }, f, indent=2, ensure_ascii=False)
 
-print(f"\nResults saved to: {out_path}")
+logger.info("Results saved to: %s", out_path)

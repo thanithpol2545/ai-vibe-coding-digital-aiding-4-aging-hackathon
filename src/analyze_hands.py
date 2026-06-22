@@ -1,7 +1,9 @@
-import cv2, numpy as np, json, os, urllib.request
+import cv2, numpy as np, json, os, urllib.request, logging
 import mediapipe as mp
 from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
+
+logger = logging.getLogger("analyze_hands")
 
 base = 'D:/Project/Hackathon/2026/June/AI Vibe Coding - Digital Aiding 4 Aging Hackathon/assets/'
 output = {}
@@ -9,9 +11,9 @@ output = {}
 model_path = os.path.join(base, 'hand_landmarker.task')
 if not os.path.exists(model_path):
     url = 'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task'
-    print(f"Downloading model from {url}...")
+    logger.info("Downloading model from %s...", url)
     urllib.request.urlretrieve(url, model_path)
-    print("Model downloaded")
+    logger.info("Model downloaded")
 
 base_options = python.BaseOptions(model_asset_path=model_path)
 options = vision.HandLandmarkerOptions(
@@ -32,7 +34,7 @@ for name in ['60-L-cut.mp4', '67-R-cut.mp4']:
     total = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
     
     if total == 0:
-        print(f"{name}: ERROR - cannot read video")
+        logger.error("%s: ERROR - cannot read video", name)
         continue
     
     # Process every 30th frame (1 per sec at 30fps)
@@ -74,22 +76,22 @@ for name in ['60-L-cut.mp4', '67-R-cut.mp4']:
         frame_count += 1
     
     pct = len(frame_results)/total*100
-    print(f"\n{name}:")
-    print(f"  Processed {frame_count}/{total} frames")
-    print(f"  Hands detected in {len(frame_results)} samples ({pct:.1f}% of frames)")
+    logger.info("%s:", name)
+    logger.info("  Processed %d/%d frames", frame_count, total)
+    logger.info("  Hands detected in %d samples (%.1f%% of frames)", len(frame_results), pct)
     
     hand_counts = {}
     for f in frame_results:
         for h in f['hands']:
             hand_counts[h['hand']] = hand_counts.get(h['hand'], 0) + 1
     
-    print(f"  Hand distribution: {hand_counts}")
-    print(f"  Detections over time:")
+    logger.info("  Hand distribution: %s", hand_counts)
+    logger.info("  Detections over time:")
     for s in frame_results[:10]:
         hands_str = "+".join([h['hand'] for h in s['hands']])
-        print(f"    t={s['time_sec']}s frame={s['frame']}: {hands_str}")
+        logger.info("    t=%ss frame=%d: %s", s['time_sec'], s['frame'], hands_str)
     if len(frame_results) > 10:
-        print(f"    ... and {len(frame_results) - 10} more")
+        logger.info("    ... and %d more", len(frame_results) - 10)
     
     # Calculate hand position stats
     if frame_results:
@@ -117,7 +119,7 @@ for name in ['60-L-cut.mp4', '67-R-cut.mp4']:
                     dist = np.sqrt((p2['x']-p1['x'])**2 + (p2['y']-p1['y'])**2)
                     total_dist += dist
                 avg_speed = total_dist / max(len(positions)-1, 1)
-                print(f"  {hand_name}: avg wrist movement per step = {avg_speed:.4f}")
+                logger.info("  %s: avg wrist movement per step = %.4f", hand_name, avg_speed)
     
     output[name] = {
         'fps': fps,
@@ -135,5 +137,5 @@ for name in ['60-L-cut.mp4', '67-R-cut.mp4']:
 out_path = 'D:/Project/Hackathon/2026/June/AI Vibe Coding - Digital Aiding 4 Aging Hackathon/docs/Research/hand_analysis.json'
 with open(out_path, 'w', encoding='utf-8') as f:
     json.dump(output, f, indent=2, ensure_ascii=False)
-print(f"\nResults saved to: {out_path}")
-print("DONE")
+logger.info("Results saved to: %s", out_path)
+logger.info("DONE")

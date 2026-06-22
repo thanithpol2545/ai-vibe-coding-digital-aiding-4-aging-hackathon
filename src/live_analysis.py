@@ -1,9 +1,12 @@
-import sys, os, cv2, numpy as np, time
+import sys, os, cv2, numpy as np, time, logging
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import config
 from hand_tracker import HandTracker
 from features import FeatureExtractor
 from classifier import DominanceClassifier
+from logger import setup_logger
+
+logger = setup_logger("live_analysis")
 
 
 def analyze_video_realtime(video_path):
@@ -101,11 +104,11 @@ def analyze_video_realtime(video_path):
     tracker.close()
 
     total_time = time.time() - start_time
-    print(f"\nProcessed {frame_idx} frames in {total_time:.1f}s ({frame_idx/max(total_time,0.1):.1f} fps)")
-    print(f"Hand detections: {process_count}")
+    logger.info("Processed %d frames in %.1fs (%.1f fps)", frame_idx, total_time, frame_idx / max(total_time, 0.1))
+    logger.info("Hand detections: %d", process_count)
 
     if not frame_data:
-        print("No hands detected — check video content")
+        logger.warning("No hands detected — check video content")
         return None
 
     data = {"fps": fps, "frames": frame_data}
@@ -120,14 +123,14 @@ def analyze_video_realtime(video_path):
     result = cls.classify(left, right)
 
     for name, feats in [("Left", left), ("Right", right)]:
-        print(f"  {name}: {feats.tap_count} taps, {feats.tapping_speed:.2f}/s, RoM={feats.range_of_motion:.3f}")
+        logger.info("  %s: %d taps, %.2f/s, RoM=%.3f", name, feats.tap_count, feats.tapping_speed, feats.range_of_motion)
 
-    print(f"\n{'='*50}")
-    print(f"  Dominant:  {result.dominant_hand} ({result.confidence:.1%})")
-    print(f"  LNU Risk:  {result.learned_non_use_risk:.1%}")
-    print(f"  Is LNU:    {result.is_learned_non_use}")
-    print(f"  Details:   {result.details}")
-    print(f"{'='*50}")
+    logger.info("=" * 50)
+    logger.info("  Dominant:  %s (%.1f%%)", result.dominant_hand, result.confidence * 100)
+    logger.info("  LNU Risk:  %.1f%%", result.learned_non_use_risk * 100)
+    logger.info("  Is LNU:    %s", result.is_learned_non_use)
+    logger.info("  Details:   %s", result.details)
+    logger.info("=" * 50)
 
     return result
 
@@ -145,5 +148,5 @@ if __name__ == "__main__":
             print("Usage: python live_analysis.py <video_path>")
             sys.exit(1)
 
-    print(f"Loading: {video}")
+    logger.info("Loading: %s", video)
     analyze_video_realtime(video)

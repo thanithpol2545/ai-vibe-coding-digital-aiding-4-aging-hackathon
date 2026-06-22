@@ -1,10 +1,13 @@
 import cv2
 import numpy as np
+import logging
 
 try:
     from ultralytics import YOLO
 except ImportError:
     YOLO = None
+
+logger = logging.getLogger("yolo_detector")
 
 
 class YOLODetector:

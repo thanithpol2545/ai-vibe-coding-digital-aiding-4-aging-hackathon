@@ -1,0 +1,16 @@
+version: "3.9"
+
+services:
+  hand-assessment:
+    build: .
+    container_name: hand-assessment-ai
+    ports:
+      - "8501:8501"
+    volumes:
+      - ./logs:/app/logs
+      - ./assets/recordings:/app/assets/recordings
+      - ./assets/hand_landmarker.task:/app/assets/hand_landmarker.task
+    environment:
+      - STREAMLIT_SERVER_MAX_UPLOAD_SIZE=200
+      - STREAMLIT_BROWSER_GATHER_USAGE_STATS=false
+    restart: unless-stopped

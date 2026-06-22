@@ -3,25 +3,28 @@ Demo: Record hand via webcam -> Run analysis pipeline -> Show results.
 Run: python src/demo_record.py
      (press SPACE to start/stop recording, ESC to quit)
 """
-import sys, os, cv2, time, json
+import sys, os, cv2, time, json, logging
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import config
 from hand_tracker import HandTracker
 from features import FeatureExtractor
 from classifier import DominanceClassifier
+from logger import setup_logger
+
+logger = setup_logger("demo_record")
 
 os.makedirs(os.path.join(config.ASSETS_DIR, "recordings"), exist_ok=True)
 sys.stdout.reconfigure(encoding='utf-8')
 
-print("="*60)
-print("HAND ASSESSMENT DEMO - Webcam Recording + Analysis")
-print("="*60)
-print("Controls:  SPACE = Start/Stop   ESC = Quit")
-print("="*60)
+logger.info("=" * 60)
+logger.info("HAND ASSESSMENT DEMO - Webcam Recording + Analysis")
+logger.info("=" * 60)
+logger.info("Controls:  SPACE = Start/Stop   ESC = Quit")
+logger.info("=" * 60)
 
 cap = cv2.VideoCapture(0)
 if not cap.isOpened():
-    print("ERROR: Cannot open webcam")
+    logger.error("Cannot open webcam")
     exit(1)
 
 fps = 30
@@ -65,18 +68,18 @@ while True:
         break
     elif key == 32:
         if not recording:
-            recording = True; frame_idx = 0; all_frames = []; tracker.reset_timestamp()
-            print("[REC] Started...")
+            recording = True; frame_idx = 0; all_frames = []
+            logger.info("[REC] Started...")
         else:
             recording = False
-            print(f"[STOP] Stopped ({len(all_frames)} frames)")
+            logger.info("[STOP] Stopped (%d frames)", len(all_frames))
             if len([f for f in all_frames if f["hands"]]) > 3:
                 data = {"fps": fps, "total_frames": len(all_frames), "frames": all_frames}
                 extractor = FeatureExtractor(data)
-                print("\n=== ANALYSIS RESULTS ===")
+                logger.info("=== ANALYSIS RESULTS ===")
                 for hand_name in ["Left", "Right"]:
                     feats = extractor.extract_all(hand_name, "tapping")
-                    print(f"  {hand_name}: Speed={feats.tapping_speed:.2f}/s  Taps={feats.tap_count}  Smooth={feats.movement_smoothness:.2f}  ROM={feats.range_of_motion:.3f}")
+                    logger.info("  %s: Speed=%.2f/s  Taps=%d  Smooth=%.2f  ROM=%.3f", hand_name, feats.tapping_speed, feats.tap_count, feats.movement_smoothness, feats.range_of_motion)
 
                 left_feats = extractor.extract_all("Left", "tapping")
                 right_feats = extractor.extract_all("Right", "tapping")
@@ -85,12 +88,12 @@ while True:
                 right_feats.symmetry_index = sym
                 result = DominanceClassifier().classify(left_feats, right_feats)
 
-                print(f"  Result: Dominant={result.dominant_hand} ({result.confidence:.0%})  LNU Risk={result.learned_non_use_risk:.0%}  {result.details[:80]}")
-                print("="*60)
+                logger.info("  Result: Dominant=%s (%d%%)  LNU Risk=%d%%  %s", result.dominant_hand, int(result.confidence * 100), int(result.learned_non_use_risk * 100), result.details[:80])
+                logger.info("=" * 60)
             else:
-                print("  Too few hand detections. Try again.")
+                logger.warning("  Too few hand detections. Try again.")
 
 cap.release()
 cv2.destroyAllWindows()
 tracker.close()
-print("\nDone.")
+logger.info("Done.")

@@ -1,7 +1,9 @@
-import sys, os, cv2, numpy as np
+import sys, os, cv2, numpy as np, logging
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import config
 from hand_tracker import HandTracker
+
+logger = logging.getLogger("extract_detections")
 
 base = "D:/Project/Hackathon/2026/June/ai-vibe-coding-digital-aiding-4-aging-hackathon/assets"
 out_dir = os.path.join(config.BASE_DIR, "docs", "Research", "04-Analysis", "detection_samples")
@@ -9,7 +11,7 @@ out_dir = os.path.join(config.BASE_DIR, "docs", "Research", "04-Analysis", "dete
 for name, max_save in [("60-L-cut.mp4", 20), ("67-R-cut.mp4", 20)]:
     path = os.path.join(base, name)
     if not os.path.exists(path):
-        print(f"NOT FOUND: {path}")
+        logger.warning("NOT FOUND: %s", path)
         continue
 
     tracker = HandTracker()
@@ -60,12 +62,12 @@ for name, max_save in [("60-L-cut.mp4", 20), ("67-R-cut.mp4", 20)]:
                 out_path = os.path.join(video_out, f"detect_{saved+1}_frame{frame_idx}_t{time_sec:.0f}s.jpg")
                 cv2.imwrite(out_path, display)
                 saved += 1
-                print(f"  {name}: saved #{saved} - frame {frame_idx} (t={time_sec:.1f}s) {[h['hand'] for h in hands]}")
+                logger.info("  %s: saved #%d - frame %d (t=%.1fs) %s", name, saved, frame_idx, time_sec, [h['hand'] for h in hands])
         
         frame_idx += 1
     
     cap.release()
     tracker.close()
-    print(f"{name}: {saved} detection samples from {total} frames ({frame_idx} checked)\n")
+    logger.info("%s: %d detection samples from %d frames (%d checked)", name, saved, total, frame_idx)
 
-print(f"All detection samples saved to: {out_dir}")
+logger.info("All detection samples saved to: %s", out_dir)

@@ -40,3 +40,12 @@ assets/hand_landmarker.task
 # Temp
 temp/
 *.tmp
+
+# Logs
+logs/
+
+# Session data
+assets/recordings/sessions/
+
+# Docker
+.dockerignore
